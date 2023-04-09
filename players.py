@@ -100,7 +100,40 @@ class MinMaxPlayer(Player):
     At the same time, the alpha beta pruning optimization algorithm is used to reduce search space and improve algorithm efficiency.
     '''
 
-    def __init__(self, letter, game_name, depth=3):
+    def heuristic(self, state, player):
+        opponent = 'O' if player == 'X' else 'X'
+        score = 0
+        n = int(len(state.board)**0.5)
+
+        def evaluate_sequence(sequence):
+            nonlocal score
+            if sequence.count(player) == 3:
+                score += 100
+            elif sequence.count(player) == 2 and sequence.count(opponent) == 0:
+                score += 1
+            elif sequence.count(opponent) == 3:
+                score -= 100
+
+        # Check rows
+        for row in range(n):
+            row_symbols = [state.board[row * n + col] for col in range(n)]
+            evaluate_sequence(row_symbols)
+
+        # Check columns
+        for col in range(n):
+            column_symbols = [state.board[row * n + col] for row in range(n)]
+            evaluate_sequence(column_symbols)
+
+        # Check diagonals
+        diagonal1 = [state.board[i * n + i] for i in range(n)]
+        diagonal2 = [state.board[i * n + (n - i - 1)] for i in range(n)]
+
+        evaluate_sequence(diagonal1)
+        evaluate_sequence(diagonal2)
+
+        return score
+
+    def __init__(self, letter, game_name, depth=4):
         super().__init__(letter)
         self.game_name = game_name
         self.depth = depth
@@ -117,7 +150,7 @@ class MinMaxPlayer(Player):
         max_player = self.letter
         other_player = 'O'
         if depth == 0:
-            return {'position': None, 'score': 0}
+            return {'position': None, 'score': self.heuristic(state, max_player)}
         if state.current_winner == other_player:
             return {'position': None, 'score': 1 * (state.num_empty_squares() + 1) if other_player == max_player else -1 * (state.num_empty_squares() + 1)}
         elif not state.empty_squares():
@@ -258,6 +291,90 @@ class QLearningPlayer(Player):
                 if current_player == self:
                     self.update_q_table(
                         t, current_state, t.get_board_state(), move, reward)
+                if current_player == self:
+                    current_player = another_player
+                else:
+                    current_player = self
+
+
+class AIPlayer(Player):
+    '''
+    AIPlayer class used for training the Q-learning algorithm
+    '''
+
+    def __init__(self, letter, game_name, q_table=None, learning_rate=0.3, discount_factor=0.9, exploration_rate=0.1):
+        super().__init__(letter)
+        self.q_table = q_table or {}
+        self.learning_rate = learning_rate
+        self.discount_factor = discount_factor
+        self.exploration_rate = exploration_rate
+        self.game_name = game_name
+
+    def get_move(self, game):
+        if random.uniform(0, 1) < self.exploration_rate:
+            return random.choice(game.available_moves())
+        else:
+            move = self.get_best_move(game)
+            return move
+
+    def get_best_move(self, game):
+        available_moves = game.available_moves()
+        max_value = -float('inf')
+        best_moves = []
+        for move in available_moves:
+            game.make_move(move, self.letter)
+            state = game.get_board_state()
+            value = self.q_table.get(state, {}).get(move, 0)
+            if value > max_value:
+                max_value = value
+                best_moves = [move]
+            elif value == max_value:
+                best_moves.append(move)
+            game.repeal_move(move)
+        if len(best_moves) > 0:
+            return random.choice(best_moves)
+        else:
+            return None
+
+    def update_q_table(self, game, old_state, new_state, move, reward):
+        old_q_value = self.q_table.get(old_state, {}).get(move, 0)
+        try:
+            best_next_move_value = max(self.q_table.get(
+                new_state, {}).values())
+        except:
+            best_next_move_value = 0.0
+        new_q_value = (1 - self.learning_rate) * old_q_value + self.learning_rate * \
+            (reward + self.discount_factor * best_next_move_value)
+        self.q_table.setdefault(old_state, {})[move] = new_q_value
+
+    def train(self, num_episodes):
+        for i in range(num_episodes):
+            if self.game_name == "TicTacToe":
+                t = TicTacToe()
+            elif self.game_name == "Connect4":
+                t = Connect4()
+            else:
+                raise ValueError("game must be TicTacToe or Connect4")
+
+            current_player = self
+            another_player = AIPlayer(
+                "O", self.game_name, q_table=self.q_table, exploration_rate=0)
+            while t.current_winner is None:
+                current_state = t.get_board_state()
+                if not ' ' in current_state:
+                    break
+                move = current_player.get_move(t)
+                t.make_move(move, current_player.letter)
+                next_state = t.get_board_state()
+                reward = 0
+                if t.current_winner is not None:
+                    if t.current_winner == self.letter:
+                        reward = 1
+                    else:
+                        reward = -1
+                if current_player == self:
+                    self.update_q_table(
+                        t, current_state, next_state, move, reward)
                 if current_player == self:
                     current_player = another_player
                 else:

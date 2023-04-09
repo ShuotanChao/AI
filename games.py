@@ -8,7 +8,6 @@ class Connect4:
         self.turn = 'X'
         self.current_winner = None
 
-    @staticmethod
     def get_class_name(self):
         return type(self).__name__
 
@@ -50,7 +49,6 @@ class Connect4:
                 self.board[row][col] = letter
                 break
         else:
-            print('Column is full!')
             return False
 
         if self.winner(col, letter):
@@ -115,21 +113,6 @@ class Connect4:
 class TicTacToe:
     '''
     Tic Tac Toe game
-
-    各函数的功能：
-        __init__(self): 类的初始化函数，初始化棋盘（一个长度为9，元素为" "的列表）和当前赢家（初始值为None）。
-        print_board(self): 打印当前棋盘状态。
-        get_board_state(self): 返回当前棋盘状态的字符串表示。
-        print_board_nums(): 打印棋盘编号（从0到8）。
-        available_moves(self): 返回一个列表，包含棋盘上所有可用的位置。
-        empty_squares(self): 返回一个布尔值，表示棋盘上是否有空位。
-        num_empty_squares(self): 返回棋盘上空位的数量。
-        make_move(self, square, letter): 在给定的位置square上下letter的棋子，并判断是否有胜者。
-            如果下完后有胜者，更新当前赢家为letter，并返回True；否则返回False。
-        winner(self, square, letter): 检查在位置square下letter是否赢得了比赛。
-            首先检查所在行是否全部为letter，其次检查所在列是否全部为letter，最后检查对角线是否全部为letter。
-            如果有一种情况成立，则返回True，否则返回False。
-
     Functions of each function:
     __ init__ (self): Class initialization function that initializes the chessboard (a list with a length of 9 and an element of "") and the current winner (with an initial value of None).
     print_ Board (self): Print the current checkerboard status.
@@ -149,7 +132,6 @@ class TicTacToe:
         self.board = [" " for _ in range(9)]
         self.current_winner = None
 
-    @staticmethod
     def get_class_name(self):
         return type(self).__name__
 
@@ -160,7 +142,6 @@ class TicTacToe:
     def get_board_state(self):
         return ''.join(self.board)
 
-    @staticmethod
     def print_board_nums():
         number_board = [[str(i) for i in range(j*3, (j+1)*3)]
                         for j in range(3)]
