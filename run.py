@@ -71,6 +71,6 @@ if __name__ == "__main__":
     # play(t, q_player, o_player, print_game=True)
     # t = TicTacToe()
     t = Connect4()
-    d_player = DefaultOpponent("D", "O", "Connect4")
+    d_player = DefaultOpponent("D", "R", "Connect4")
     r_player = RandomPlayer("R")
-    play(t, o_player, d_player, print_game=True)
+    play(t, r_player, d_player, print_game=True)

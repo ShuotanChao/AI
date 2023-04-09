@@ -19,13 +19,13 @@ class Connect4:
         return False
 
     def print_board(self):
-        print('-------------')
+        print('-----------------------------')
         for i in range(6):
             print('|', end='')
             for j in range(7):
                 print(f' {self.board[i][j]} |', end='')
             print()
-            print('-------------')
+            print('-----------------------------')
 
     def get_board_state(self):
         state = ""
@@ -42,17 +42,19 @@ class Connect4:
         return moves
 
     def make_move(self, col, letter):
-        row = 5
-        while row >= 0:
+        if self.winner(col, letter):
+            self.current_winner = letter
+            return True
+        for row in range(5, -1, -1):
             if self.board[row][col] == ' ':
                 self.board[row][col] = letter
-                if self.winner(col, letter):
-                    self.current_winner = letter
                 break
-            row -= 1
         else:
             print('Column is full!')
             return False
+
+        if self.winner(col, letter):
+            self.current_winner = letter
 
         return True
 
@@ -71,57 +73,41 @@ class Connect4:
         return count
 
     def winner(self, col, letter):
-        row = -1
-        while row < 5 and self.board[row+1][col] == ' ':
-            row += 1
-
         # check horizontal
-        count = 0
-        for j in range(4):
-            if col + j > 6:
-                break
-            if self.board[row][col+j] == letter:
-                count += 1
-            else:
-                break
-        if count == 4:
-            return True
+        for i in range(6):
+            for j in range(4):
+                if self.board[i][j] == letter and \
+                        self.board[i][j+1] == letter and \
+                        self.board[i][j+2] == letter and \
+                        self.board[i][j+3] == letter:
+                    return True
 
         # check vertical
-        count = 0
-        for i in range(4):
-            if row + i > 5:
-                break
-            if self.board[row+i][col] == letter:
-                count += 1
-            else:
-                break
-        if count == 4:
-            return True
+        for i in range(3):
+            for j in range(7):
+                if self.board[i][j] == letter and \
+                        self.board[i+1][j] == letter and \
+                        self.board[i+2][j] == letter and \
+                        self.board[i+3][j] == letter:
+                    return True
 
-        # check diagonal up-right
-        count = 0
-        for i, j in zip(range(3, -1, -1), range(4)):
-            if row - i < 0 or col + j > 6:
-                break
-            if self.board[row-i][col+j] == letter:
-                count += 1
-            else:
-                break
-        if count == 4:
-            return True
+        # check diagonal (up-right)
+        for i in range(3):
+            for j in range(4):
+                if self.board[i][j] == letter and \
+                        self.board[i+1][j+1] == letter and \
+                        self.board[i+2][j+2] == letter and \
+                        self.board[i+3][j+3] == letter:
+                    return True
 
-        # check diagonal up-left
-        count = 0
-        for i, j in zip(range(3, -1, -1), range(3, -1, -1)):
-            if row - i < 0 or col - j < 0:
-                break
-            if self.board[row-i][col-j] == letter:
-                count += 1
-            else:
-                break
-        if count == 4:
-            return True
+        # check diagonal (up-left)
+        for i in range(3):
+            for j in range(3, 7):
+                if self.board[i][j] == letter and \
+                        self.board[i+1][j-1] == letter and \
+                        self.board[i+2][j-2] == letter and \
+                        self.board[i+3][j-3] == letter:
+                    return True
 
         return False
 
